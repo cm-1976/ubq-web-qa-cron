@@ -1,0 +1,64 @@
+﻿# Public cron trigger for private cm-1976/UBQ-platform web-qa-nightly.
+# Why public: GitHub Free does not run `schedule` on private repos.
+# Secret required (Settings → Secrets → Actions):
+#   UBQ_DISPATCH_TOKEN = fine-grained PAT with Actions: Read and write on UBQ-platform
+# MUST: never commit the token.
+
+name: ubq-web-qa-cron
+
+on:
+  schedule:
+    # 15:00 UTC ≈ 16:00 Europe/Rome (CET). In CEST ≈ 17:00.
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch of UBQ-platform to run"
+        required: true
+        type: string
+        default: dev
+      env:
+        description: "Target site env"
+        required: true
+        type: choice
+        options: [test, main]
+        default: test
+      suites:
+        description: "Suites CSV or all"
+        required: true
+        type: string
+        default: all
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard — dispatch token present
+        env:
+          UBQ_DISPATCH_TOKEN: ${{ secrets.UBQ_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$UBQ_DISPATCH_TOKEN" ]; then
+            echo "::error::Missing secret UBQ_DISPATCH_TOKEN. Create a fine-grained PAT (Actions: read/write on cm-1976/UBQ-platform) and set it as repo secret."
+            exit 1
+          fi
+
+      - name: workflow_dispatch → UBQ-platform web-qa-nightly
+        env:
+          GH_TOKEN: ${{ secrets.UBQ_DISPATCH_TOKEN }}
+          TARGET_REF: ${{ github.event.inputs.ref || 'dev' }}
+          TARGET_ENV: ${{ github.event.inputs.env || 'test' }}
+          TARGET_SUITES: ${{ github.event.inputs.suites || 'all' }}
+        run: |
+          set -euo pipefail
+          echo "Dispatching web-qa-nightly ref=$TARGET_REF env=$TARGET_ENV suites=$TARGET_SUITES"
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/cm-1976/UBQ-platform/actions/workflows/web-qa-nightly.yml/dispatches" \
+            -f ref="$TARGET_REF" \
+            -f "inputs[env]=$TARGET_ENV" \
+            -f "inputs[suites]=$TARGET_SUITES"
+          echo "Accepted. Check https://github.com/cm-1976/UBQ-platform/actions/workflows/web-qa-nightly.yml"
