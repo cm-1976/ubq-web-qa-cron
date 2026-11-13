@@ -8,8 +8,8 @@ name: ubq-web-qa-cron
 
 on:
   schedule:
-    # 19:00 UTC ≈ 20:00 Europe/Rome (CET). In CEST ≈ 21:00.
-    - cron: "0 19 * * *"
+    # 10:00 UTC ≈ 11:00 Europe/Rome (CET). In CEST ≈ 12:00.
+    - cron: "0 10 * * *"
   workflow_dispatch:
     inputs:
       ref:
