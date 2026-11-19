@@ -13,4 +13,13 @@ GitHub Free does **not** run `schedule` on private repositories. This public rep
 3. Actions → **ubq-web-qa-cron** → **Run workflow** (smoke).
 4. Confirm a new run appears on https://github.com/cm-1976/UBQ-platform/actions
 
-Daily schedule: `0 10 * * *` UTC ≈ **11:00 Europe/Rome (CET)**.
+## Schedule (Europe/Rome)
+
+| Cron UTC | Meaning (CET, UTC+1) | Role |
+| --- | --- | --- |
+| `30 5 * * *` | **06:30** Rome | Permanent daily |
+| `0 14 * * *` | **15:00** Rome | **TEMP TEST** — remove after confirmation |
+
+Defaults for scheduled dispatch: `ref=main`, `env=test`, `suites=all`.
+
+In CEST (UTC+2) the wall-clock times shift +1h unless the UTC cron is adjusted.

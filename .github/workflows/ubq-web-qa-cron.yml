@@ -3,22 +3,29 @@
 # Secret required (Settings → Secrets → Actions):
 #   UBQ_DISPATCH_TOKEN = fine-grained PAT with Actions: Read and write on UBQ-platform
 # MUST: never commit the token.
+#
+# Default target: branch main, site env=test, suites=all.
+# Times are Europe/Rome (CET=UTC+1 in Nov–Mar; CEST=UTC+2 in Mar–Oct).
+# Permanent: 06:30 Rome → 05:30 UTC (CET) / 04:30 UTC (CEST — adjust seasonally if needed).
+# TEMP TEST: 15:00 Rome → 14:00 UTC (CET). Remove after user confirms OK.
 
 name: ubq-web-qa-cron
 
 on:
   schedule:
-    # 10:00 UTC ≈ 11:00 Europe/Rome (CET). In CEST ≈ 12:00.
-    - cron: "0 10 * * *"
+    # 06:30 Europe/Rome (CET = UTC+1) → 05:30 UTC
+    - cron: "30 5 * * *"
+    # TEMP TEST — 15:00 Europe/Rome (CET) → 14:00 UTC. Delete after confirmation.
+    - cron: "0 14 * * *"
   workflow_dispatch:
     inputs:
       ref:
         description: "Branch of UBQ-platform to run"
         required: true
         type: string
-        default: dev
+        default: main
       env:
-        description: "Target site env"
+        description: "Target site env (--env)"
         required: true
         type: choice
         options: [test, main]
@@ -48,7 +55,7 @@ jobs:
       - name: workflow_dispatch → UBQ-platform web-qa-nightly
         env:
           GH_TOKEN: ${{ secrets.UBQ_DISPATCH_TOKEN }}
-          TARGET_REF: ${{ github.event.inputs.ref || 'dev' }}
+          TARGET_REF: ${{ github.event.inputs.ref || 'main' }}
           TARGET_ENV: ${{ github.event.inputs.env || 'test' }}
           TARGET_SUITES: ${{ github.event.inputs.suites || 'all' }}
         run: |
